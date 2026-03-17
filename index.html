@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Viewer</title>
+
+  <!-- CDN Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-theme" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/viewer.css" />
+  <link rel="stylesheet" href="styles/themes/light.css" id="theme-light" />
+  <link rel="stylesheet" href="styles/themes/dark.css" id="theme-dark" disabled />
+</head>
+<body data-theme="light">
+
+  <!-- Toolbar -->
+  <header class="toolbar" role="banner">
+    <div class="toolbar__brand">
+      <svg class="toolbar__logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10,9 9,9 8,9"/>
+      </svg>
+      <span class="toolbar__title">Document Viewer</span>
+    </div>
+    <div class="toolbar__actions">
+      <div class="toolbar__zoom">
+        <button class="btn btn--icon" id="zoom-out" title="축소 (Ctrl+-)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </button>
+        <span class="toolbar__zoom-level" id="zoom-level">100%</span>
+        <button class="btn btn--icon" id="zoom-in" title="확대 (Ctrl++)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>
+        </button>
+        <button class="btn btn--icon" id="zoom-reset" title="100% 초기화">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
+      <div class="toolbar__divider"></div>
+      <button class="btn btn--icon" id="print-btn" title="인쇄 (Ctrl+P)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      </button>
+      <button class="btn btn--icon" id="theme-toggle" title="테마 전환">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="main-layout" role="main">
+
+    <!-- Input Panel -->
+    <aside class="input-panel" role="complementary" aria-label="문서 입력">
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="파일을 여기에 드래그하거나 클릭하여 업로드">
+        <div class="drop-zone__inner">
+          <svg class="drop-zone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17,8 12,3 7,8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="drop-zone__text">파일을 드래그하거나 <span class="drop-zone__link">클릭하여 업로드</span></p>
+          <p class="drop-zone__hint">HTML · Markdown · DOCX · PDF · TXT · MMD</p>
+        </div>
+        <input type="file" id="file-input" class="drop-zone__input" accept=".html,.htm,.md,.markdown,.docx,.pdf,.txt,.text,.mmd" />
+      </div>
+
+      <!-- Format Selector -->
+      <div class="format-selector" id="format-selector">
+        <label class="format-selector__label" for="format-select">형식</label>
+        <div class="format-selector__wrapper">
+          <select class="format-selector__select" id="format-select" aria-label="문서 형식 선택">
+            <option value="auto">자동 감지</option>
+            <option value="markdown">Markdown</option>
+            <option value="html">HTML</option>
+            <option value="text">Plain Text</option>
+            <option value="mermaid">Mermaid Diagram</option>
+          </select>
+          <svg class="format-selector__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+      </div>
+
+      <!-- Paste Panel -->
+      <div class="paste-panel" id="paste-panel">
+        <div class="paste-panel__header">
+          <label class="paste-panel__label" for="paste-input">텍스트 붙여넣기</label>
+          <button class="btn btn--ghost btn--sm" id="paste-clear" title="내용 지우기">지우기</button>
+        </div>
+        <textarea
+          class="paste-panel__textarea"
+          id="paste-input"
+          placeholder="텍스트를 붙여넣거나 직접 입력하세요..."
+          spellcheck="false"
+          aria-label="문서 텍스트 입력"
+        ></textarea>
+      </div>
+
+      <!-- Render Button -->
+      <button class="btn btn--primary btn--full" id="render-btn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+        렌더링
+      </button>
+
+    </aside>
+
+    <!-- Viewer Panel -->
+    <section class="viewer-panel" id="viewer-panel" aria-label="문서 뷰어">
+      <div class="viewer-panel__empty" id="viewer-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14,2 14,8 20,8"/>
+        </svg>
+        <p>문서를 업로드하거나 텍스트를 붙여넣어 시작하세요</p>
+      </div>
+      <div class="viewer-panel__content prose" id="viewer-content" role="article"></div>
+
+      <!-- PDF Navigation (hidden by default) -->
+      <div class="pdf-nav" id="pdf-nav" hidden>
+        <button class="btn btn--icon" id="pdf-prev" title="이전 페이지">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"/></svg>
+        </button>
+        <span class="pdf-nav__info"><span id="pdf-page-current">1</span> / <span id="pdf-page-total">1</span></span>
+        <button class="btn btn--icon" id="pdf-next" title="다음 페이지">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+        </button>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar" id="status-bar" hidden>
+        <span class="status-bar__item" id="status-format">-</span>
+        <span class="status-bar__sep">·</span>
+        <span class="status-bar__item" id="status-chars">0자</span>
+        <span class="status-bar__sep" id="status-pages-sep" hidden>·</span>
+        <span class="status-bar__item" id="status-pages" hidden>1페이지</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" role="alert" aria-live="polite"></div>
+
+  <!-- App Entry Point -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

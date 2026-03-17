@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant U as 사용자
+    participant D as DropZone
+    participant V as FormatValidator
+    participant R as RendererFactory
+    participant P as ViewerPanel
+
+    U->>D: 파일 드래그앤드롭
+    D->>V: 형식 감지 요청
+    V-->>D: formatId 반환
+    D->>R: create(formatId, container)
+    R-->>D: Renderer 인스턴스
+    D->>P: render(content) 호출
+    P-->>U: 렌더링된 문서 표시

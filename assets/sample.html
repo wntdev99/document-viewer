@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML 샘플 문서</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: 0 auto; padding: 2em; }
+    h1 { color: #2563eb; }
+    .card { border: 1px solid #dee2e6; border-radius: 8px; padding: 1em; margin: 1em 0; }
+    .card h2 { margin: 0 0 0.5em; font-size: 1.1em; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 12px; border: 1px solid #dee2e6; text-align: left; }
+    th { background: #f8f9fa; }
+  </style>
+</head>
+<body>
+  <h1>HTML 샘플 문서</h1>
+  <p>이 파일은 Document Viewer의 <strong>HTML 렌더러</strong>를 테스트하기 위한 샘플입니다.</p>
+
+  <div class="card">
+    <h2>특징</h2>
+    <ul>
+      <li>iframe sandbox 렌더링 (JS 실행 차단)</li>
+      <li>DOMPurify로 XSS 방어</li>
+      <li>다크 테마 자동 적용</li>
+    </ul>
+  </div>
+
+  <h2>표 예시</h2>
+  <table>
+    <thead>
+      <tr><th>항목</th><th>값</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>렌더러</td><td>HtmlRenderer</td></tr>
+      <tr><td>라이브러리</td><td>iframe + DOMPurify</td></tr>
+      <tr><td>보안</td><td>sandbox 속성으로 JS 차단</td></tr>
+    </tbody>
+  </table>
+</body>
+</html>
