@@ -226,8 +226,3 @@
   border-radius: var(--radius-md);
 }
 
-/* Zoom transform */
-.viewer-panel__content[data-zoom] .prose,
-.viewer-panel__content[data-zoom] .prose-pre {
-  transform-origin: top left;
-}

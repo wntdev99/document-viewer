@@ -28,6 +28,8 @@ export class ViewerPanel {
     eventBus.on(EVENTS.RENDER_COMPLETE, ({ formatId, content }) => {
       this._showContent();
       this._updateStatus(formatId, content);
+      // 새 콘텐츠에 현재 줌 레벨 재적용
+      this._applyZoom(state.get('zoomLevel'));
     });
 
     eventBus.on(EVENTS.RENDER_ERROR, ({ error }) => {
@@ -115,19 +117,22 @@ export class ViewerPanel {
   }
 
   _applyZoom(level) {
-    const scale = level / 100;
-    this._contentEl.style.setProperty('--zoom-scale', scale);
-    // prose 내부 콘텐츠에 transform 적용
-    const prose = this._contentEl.querySelector('.prose, .prose-pre');
-    if (prose) {
-      prose.style.transform = scale !== 1 ? `scale(${scale})` : '';
-      prose.style.transformOrigin = 'top left';
-      // 줌 후 컨테이너 높이 보정
-      if (scale !== 1) {
-        const rect = prose.getBoundingClientRect();
-        this._contentEl.style.height = scale < 1 ? 'auto' : '';
-      }
-    }
+    const zoomVal = `${level}%`;
+    // CSS zoom은 transform과 달리 레이아웃에 영향을 주어 스크롤이 올바르게 동작함
+    const prose = this._contentEl.querySelector('.prose');
+    if (prose) { prose.style.zoom = zoomVal; return; }
+
+    const prosePre = this._contentEl.querySelector('.prose-pre');
+    if (prosePre) { prosePre.style.zoom = zoomVal; return; }
+
+    const mermaid = this._contentEl.querySelector('.mermaid-wrapper');
+    if (mermaid) { mermaid.style.zoom = zoomVal; return; }
+
+    const iframe = this._contentEl.querySelector('iframe');
+    if (iframe) { iframe.style.zoom = zoomVal; return; }
+
+    const pdfWrapper = this._contentEl.querySelector('.pdf-canvas-wrapper');
+    if (pdfWrapper) { pdfWrapper.style.zoom = zoomVal; }
   }
 
   getContentEl() {

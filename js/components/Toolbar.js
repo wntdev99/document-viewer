@@ -8,7 +8,7 @@ import { setText } from '../utils/domUtils.js';
 
 const ZOOM_STEP = 10;
 const ZOOM_MIN = 50;
-const ZOOM_MAX = 200;
+const ZOOM_MAX = 500;
 
 export class Toolbar {
   constructor() {
